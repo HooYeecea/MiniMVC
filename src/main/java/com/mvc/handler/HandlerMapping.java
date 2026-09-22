@@ -1,6 +1,6 @@
-package com.minispring.mvc.handler;
+package com.mvc.handler;
 
-import com.minispring.web.HttpRequest;
+import com.web.HttpRequest;
 
 /**
  * Resolves an HTTP request to a {@link HandlerMethod}.

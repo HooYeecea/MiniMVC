@@ -1,4 +1,4 @@
-package com.minispring.mvc.annotation;
+package com.mvc.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

@@ -1,11 +1,11 @@
-package com.minispring.mvc.handler;
+package com.mvc.handler;
 
 import com.miniioccontainer.aop.MiniAopInterceptor;
 import com.miniioccontainer.context.MiniApplicationContext;
-import com.minispring.mvc.annotation.Controller;
-import com.minispring.mvc.annotation.RequestMapping;
-import com.minispring.mvc.annotation.RequestMethod;
-import com.minispring.web.HttpRequest;
+import com.mvc.annotation.Controller;
+import com.mvc.annotation.RequestMapping;
+import com.mvc.annotation.RequestMethod;
+import com.web.HttpRequest;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

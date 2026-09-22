@@ -1,7 +1,7 @@
-D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\minispring\mvc\annotation\Controller.java
-D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\minispring\mvc\annotation\RequestMapping.java
-D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\minispring\mvc\annotation\RequestMethod.java
-D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\minispring\mvc\handler\HandlerMapping.java
-D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\minispring\mvc\handler\HandlerMethod.java
-D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\minispring\mvc\handler\RequestMappingHandlerMapping.java
-D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\minispring\mvc\servlet\DispatcherServlet.java
+D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\mvc\annotation\Controller.java
+D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\mvc\annotation\RequestMapping.java
+D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\mvc\annotation\RequestMethod.java
+D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\mvc\handler\HandlerMapping.java
+D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\mvc\handler\HandlerMethod.java
+D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\mvc\handler\RequestMappingHandlerMapping.java
+D:\program_code\JavaProject\pratice\MiniSpring\MiniMVC\src\main\java\com\mvc\servlet\DispatcherServlet.java

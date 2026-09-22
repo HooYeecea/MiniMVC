@@ -1,4 +1,4 @@
-package com.minispring.mvc.annotation;
+package com.mvc.annotation;
 
 /**
  * HTTP methods supported by {@link RequestMapping}.

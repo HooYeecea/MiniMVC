@@ -1,6 +1,6 @@
-package com.minispring.mvc.handler;
+package com.mvc.handler;
 
-import com.minispring.mvc.annotation.RequestMethod;
+import com.mvc.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
 import java.util.Collections;

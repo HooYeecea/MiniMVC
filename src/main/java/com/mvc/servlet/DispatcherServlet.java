@@ -1,12 +1,12 @@
-package com.minispring.mvc.servlet;
+package com.mvc.servlet;
 
 import com.miniioccontainer.context.MiniApplicationContext;
-import com.minispring.mvc.handler.HandlerMapping;
-import com.minispring.mvc.handler.HandlerMethod;
-import com.minispring.mvc.handler.RequestMappingHandlerMapping;
-import com.minispring.web.HttpRequest;
-import com.minispring.web.HttpResponse;
-import com.minispring.web.Servlet;
+import com.mvc.handler.HandlerMapping;
+import com.mvc.handler.HandlerMethod;
+import com.mvc.handler.RequestMappingHandlerMapping;
+import com.web.HttpRequest;
+import com.web.HttpResponse;
+import com.web.Servlet;
 
 /**
  * Front controller for MiniMVC (Spring {@code DispatcherServlet} analogue).
