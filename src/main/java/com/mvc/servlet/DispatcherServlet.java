@@ -75,7 +75,7 @@ public class DispatcherServlet implements Servlet {
 
     @Override
     public void service(HttpRequest request, HttpResponse response) throws Exception {
-        HandlerMethod handler = handlerMapping.getHandler(request);
+        HandlerMethod handler = handlerMapping.getHandler(request);// 去找对应的Controller
         if (handler == null) {
             response.setStatus(404, "Not Found");
             response.setHeader("Content-Type", "text/plain; charset=UTF-8");
@@ -91,7 +91,7 @@ public class DispatcherServlet implements Servlet {
             response.setBody("No HandlerAdapter for " + handler.getDescription() + "\n");
             return;
         }
-
+        //
         List<MappedInterceptor> chain = matchingInterceptors(request.getPath());
         int preHandleIndex = -1;
         Exception dispatchException = null;
