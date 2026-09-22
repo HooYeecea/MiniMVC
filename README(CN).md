@@ -16,20 +16,18 @@ MiniMVC **不依赖**具体某个 Tomcat。启动时把 `DispatcherServlet` 挂�
 | 步骤 | 目标 | 状态 |
 |------|------|------|
 | 1 | 注解 + `DispatcherServlet` 骨架 | 已完成 |
-| **2** | `HandlerMapping` — 发现 `@Controller` 并建路由表 | **已完成** |
-| 3 | 反射调用处理方法并写回响应 | 待做 |
+| 2 | `HandlerMapping` — 发现 `@Controller` 并建路由表 | 已完成 |
+| **3** | 反射调用处理方法并写回响应 | **已完成** |
 | 4 | Demo + 接到某个 Tomcat 实现 | 待做 |
 | 后续 | `@RequestParam`、返回值处理等 | 待做 |
 
-## Step 2 — 本次交付
+## Step 3 — 本次交付
 
-- `HandlerMethod` — Bean + `Method` + 路径 + HTTP 方法
-- `HandlerMapping` / `RequestMappingHandlerMapping`
-  - 扫描 IoC 中全部 Bean，解开 AOP 代理
-  - 注册带 `@Controller` 且方法上有 `@RequestMapping` 的类型
-  - 拼接类级 + 方法级路径（目前仅精确匹配）
-- `DispatcherServlet.init()` 建表；`service()` 查找并输出匹配结果（或 404）。
-  **尚未真正调用** Controller 方法。
+- `HandlerAdapter` / `RequestMappingHandlerAdapter`
+  - 反射调用匹配到的 `HandlerMethod`
+  - 支持方法参数注入 `HttpRequest` / `HttpResponse`
+  - 返回 `String`（或其他）→ 写入纯文本 body；`void` 则假定方法已通过 `HttpResponse` 写过
+- `DispatcherServlet.service()`：查找 → 适配 → 调用（失败时 404 / 500）
 
 **说明：** `@Controller` 类同时需要是 IoC Bean（例如再加 `@MyComponent`）。
 

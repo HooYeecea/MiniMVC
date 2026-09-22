@@ -1,8 +1,10 @@
 package com.mvc.servlet;
 
 import com.miniioccontainer.context.MiniApplicationContext;
+import com.mvc.handler.HandlerAdapter;
 import com.mvc.handler.HandlerMapping;
 import com.mvc.handler.HandlerMethod;
+import com.mvc.handler.RequestMappingHandlerAdapter;
 import com.mvc.handler.RequestMappingHandlerMapping;
 import com.web.HttpRequest;
 import com.web.HttpResponse;
@@ -11,13 +13,13 @@ import com.web.Servlet;
 /**
  * Front controller for MiniMVC (Spring {@code DispatcherServlet} analogue).
  * <p>
- * <b>Step 2:</b> builds {@link RequestMappingHandlerMapping} on init and looks up
- * handlers. Invocation is still deferred to the next step.
+ * <b>Step 3:</b> look up a handler, then invoke it through {@link HandlerAdapter}.
  */
 public class DispatcherServlet implements Servlet {
 
     private final MiniApplicationContext applicationContext;
     private final RequestMappingHandlerMapping handlerMapping = new RequestMappingHandlerMapping();
+    private final HandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
 
     public DispatcherServlet(MiniApplicationContext applicationContext) {
         if (applicationContext == null) {
@@ -34,32 +36,44 @@ public class DispatcherServlet implements Servlet {
         return handlerMapping;
     }
 
-    @Override
-    public void init() {
-        handlerMapping.init(applicationContext);
-        System.out.println("[MiniMVC] DispatcherServlet init (step 2: HandlerMapping)");
+    public HandlerAdapter getHandlerAdapter() {
+        return handlerAdapter;
     }
 
     @Override
-    public void service(HttpRequest request, HttpResponse response) {
+    public void init() {
+        handlerMapping.init(applicationContext);
+        System.out.println("[MiniMVC] DispatcherServlet init (step 3: invoke handlers)");
+    }
+
+    @Override
+    public void service(HttpRequest request, HttpResponse response) throws Exception {
         HandlerMethod handler = handlerMapping.getHandler(request);
-        response.setHeader("Content-Type", "text/plain; charset=UTF-8");
         if (handler == null) {
             response.setStatus(404, "Not Found");
+            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
             response.setBody(
                     "404 Not Found\n"
                             + "method=" + request.getMethod() + "\n"
-                            + "path=" + request.getPath() + "\n"
-                            + "(step 2: mapping only — no handler matched)\n");
+                            + "path=" + request.getPath() + "\n");
             return;
         }
-        response.setStatus(200, "OK");
-        response.setBody(
-                "Handler matched (step 2: mapping only, not invoked yet).\n"
-                        + "handler=" + handler.getDescription() + "\n"
-                        + "method=" + request.getMethod() + "\n"
-                        + "path=" + request.getPath() + "\n"
-                        + "Next: reflectively invoke the controller method.\n");
+        if (!handlerAdapter.supports(handler)) {
+            response.setStatus(500, "Internal Server Error");
+            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            response.setBody("No HandlerAdapter for " + handler.getDescription() + "\n");
+            return;
+        }
+        try {
+            handlerAdapter.handle(request, response, handler);
+        } catch (Exception ex) {
+            response.setStatus(500, "Internal Server Error");
+            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+            response.setBody("500 Internal Server Error\n" + message + "\n");
+            System.err.println("[MiniMVC] handler failed: " + handler.getDescription());
+            ex.printStackTrace(System.err);
+        }
     }
 
     @Override

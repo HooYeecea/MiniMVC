@@ -2,6 +2,8 @@ com\mvc\annotation\Controller.class
 com\mvc\handler\HandlerMethod.class
 com\mvc\handler\HandlerMapping.class
 com\mvc\annotation\RequestMapping.class
+com\mvc\handler\RequestMappingHandlerAdapter.class
 com\mvc\servlet\DispatcherServlet.class
 com\mvc\handler\RequestMappingHandlerMapping.class
+com\mvc\handler\HandlerAdapter.class
 com\mvc\annotation\RequestMethod.class

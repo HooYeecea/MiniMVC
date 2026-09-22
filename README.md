@@ -16,20 +16,19 @@ MiniMVC does **not** depend on a specific Tomcat. Wire `DispatcherServlet` into
 | Step | Goal | Status |
 |------|------|--------|
 | 1 | Annotations + `DispatcherServlet` skeleton | done |
-| **2** | `HandlerMapping` — discover `@Controller` beans and build route table | **done** |
-| 3 | Invoke handler methods (reflect + write response) | pending |
+| 2 | `HandlerMapping` — discover `@Controller` beans and build route table | done |
+| **3** | Invoke handler methods (reflect + write response) | **done** |
 | 4 | Demo app + plug into a Tomcat impl | pending |
 | later | `@RequestParam`, return-value handlers, etc. | pending |
 
-## Step 2 — what landed
+## Step 3 — what landed
 
-- `HandlerMethod` — bean + `Method` + path + HTTP methods
-- `HandlerMapping` / `RequestMappingHandlerMapping`
-  - Scans IoC beans (`getBeansOfType(Object.class)`), unwraps AOP proxies
-  - Registers `@Controller` types that also have `@RequestMapping` on methods
-  - Combines class-level + method-level paths (exact match only)
-- `DispatcherServlet.init()` builds the table; `service()` looks up and reports
-  the match (or 404). **Does not invoke** the controller yet.
+- `HandlerAdapter` / `RequestMappingHandlerAdapter`
+  - Reflectively invoke the matched `HandlerMethod`
+  - Inject `HttpRequest` / `HttpResponse` method parameters
+  - `String` (or other) return values → plain-text response body; `void` if the
+    method already wrote via `HttpResponse`
+- `DispatcherServlet.service()` now: map → adapt → invoke (404 / 500 on failure)
 
 **Note:** `@Controller` classes must also be IoC beans (e.g. `@MyComponent`).
 
