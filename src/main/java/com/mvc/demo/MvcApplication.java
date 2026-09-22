@@ -16,6 +16,7 @@ public class MvcApplication {
     public static void main(String[] args) throws Exception {
         MiniApplicationContext context = new MiniApplicationContext("com.mvc.demo");
         DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
+        dispatcherServlet.addInterceptor(new LoggingInterceptor());
         dispatcherServlet.init();
 
         HandleRequest.resetMappings();
@@ -24,6 +25,10 @@ public class MvcApplication {
         System.out.println("[MiniMVC] Demo routes:");
         System.out.println("  GET http://localhost:8080/mvc/hello");
         System.out.println("  GET http://localhost:8080/mvc/echo?name=MiniSpring");
+        System.out.println("  GET http://localhost:8080/mvc/add?a=1&b=2");
+        System.out.println("  GET http://localhost:8080/api/ping");
+        System.out.println("  GET http://localhost:8080/api/user?id=7");
+        System.out.println("  GET http://localhost:8080/api/users/7");
         HttpServer.main(args);
     }
 }

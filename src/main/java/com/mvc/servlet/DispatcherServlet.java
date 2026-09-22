@@ -6,20 +6,23 @@ import com.mvc.handler.HandlerMapping;
 import com.mvc.handler.HandlerMethod;
 import com.mvc.handler.RequestMappingHandlerAdapter;
 import com.mvc.handler.RequestMappingHandlerMapping;
+import com.mvc.interceptor.HandlerInterceptor;
 import com.web.HttpRequest;
 import com.web.HttpResponse;
 import com.web.Servlet;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Front controller for MiniMVC (Spring {@code DispatcherServlet} analogue).
- * <p>
- * <b>Step 3:</b> look up a handler, then invoke it through {@link HandlerAdapter}.
+ * Front controller for MiniMVC.
  */
 public class DispatcherServlet implements Servlet {
 
     private final MiniApplicationContext applicationContext;
     private final RequestMappingHandlerMapping handlerMapping = new RequestMappingHandlerMapping();
     private final HandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
+    private final List<HandlerInterceptor> interceptors = new ArrayList<>();
 
     public DispatcherServlet(MiniApplicationContext applicationContext) {
         if (applicationContext == null) {
@@ -40,10 +43,14 @@ public class DispatcherServlet implements Servlet {
         return handlerAdapter;
     }
 
+    public void addInterceptor(HandlerInterceptor interceptor) {
+        interceptors.add(interceptor);
+    }
+
     @Override
     public void init() {
         handlerMapping.init(applicationContext);
-        System.out.println("[MiniMVC] DispatcherServlet init (step 3: invoke handlers)");
+        System.out.println("[MiniMVC] DispatcherServlet init");
     }
 
     @Override
@@ -64,8 +71,17 @@ public class DispatcherServlet implements Servlet {
             response.setBody("No HandlerAdapter for " + handler.getDescription() + "\n");
             return;
         }
+
         try {
+            for (HandlerInterceptor interceptor : interceptors) {
+                if (!interceptor.preHandle(request, response, handler)) {
+                    return;
+                }
+            }
             handlerAdapter.handle(request, response, handler);
+            for (int i = interceptors.size() - 1; i >= 0; i--) {
+                interceptors.get(i).postHandle(request, response, handler);
+            }
         } catch (Exception ex) {
             response.setStatus(500, "Internal Server Error");
             response.setHeader("Content-Type", "text/plain; charset=UTF-8");

@@ -4,11 +4,10 @@ import com.miniioccontainer.annotation.MyComponent;
 import com.mvc.annotation.Controller;
 import com.mvc.annotation.RequestMapping;
 import com.mvc.annotation.RequestMethod;
-import com.web.HttpRequest;
+import com.mvc.annotation.RequestParam;
 
 /**
- * Sample controller for MiniMVC step 4.
- * Must be an IoC bean ({@link MyComponent}) so DispatcherServlet can discover it.
+ * Sample controller for MiniMVC demos.
  */
 @MyComponent
 @Controller
@@ -21,11 +20,12 @@ public class HelloController {
     }
 
     @RequestMapping(value = "/echo", method = RequestMethod.GET)
-    public String echo(HttpRequest request) {
-        String name = request.getParameter("name");
-        if (name == null || name.isEmpty()) {
-            name = "world";
-        }
+    public String echo(@RequestParam(value = "name", required = false, defaultValue = "world") String name) {
         return "echo: " + name + "\n";
+    }
+
+    @RequestMapping(value = "/add", method = RequestMethod.GET)
+    public String add(@RequestParam("a") int a, @RequestParam("b") int b) {
+        return "sum=" + (a + b) + "\n";
     }
 }

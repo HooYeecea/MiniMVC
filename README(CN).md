@@ -7,48 +7,54 @@
 
 英文版：[README.md](README.md)
 
-MiniMVC **不依赖**具体某个 Tomcat。启动时把 `DispatcherServlet` 挂到
-[MiniTomcat](https://github.com/HooYeecea/MiniTomcat) 或
-[MiniTomcatNIO](https://github.com/HooYeecea/MiniTomcatNIO) 即可。
+MiniMVC **不绑死**某一个 Tomcat。Demo 可把 `DispatcherServlet` 挂到
+[MiniTomcat](https://github.com/HooYeecea/MiniTomcat)（BIO）或
+[MiniTomcatNIO](https://github.com/HooYeecea/MiniTomcatNIO)。
 
-## 路线图（一步一步）
+## 路线图
 
 | 步骤 | 目标 | 状态 |
 |------|------|------|
 | 1 | 注解 + `DispatcherServlet` 骨架 | 已完成 |
-| 2 | `HandlerMapping` — 发现 `@Controller` 并建路由表 | 已完成 |
-| 3 | 反射调用处理方法并写回响应 | 已完成 |
-| **4** | Demo + 接到 MiniTomcat | **已完成** |
-| 后续 | `@RequestParam`、返回值处理、NIO 启动等 | 待做 |
+| 2 | `HandlerMapping` | 已完成 |
+| 3 | `HandlerAdapter` 调用 | 已完成 |
+| 4 | Demo 挂 MiniTomcat | 已完成 |
+| 5 | `@RequestParam` | 已完成 |
+| 6 | JSON（`@ResponseBody` / `@RestController`） | 已完成 |
+| 7 | Demo 挂 MiniTomcatNIO | 已完成 |
+| 8 | `@PathVariable` + `HandlerInterceptor` | 已完成 |
 
-## Step 4 — 本次交付
+## 能力
 
-- Demo：`com.mvc.demo.HelloController`（`GET /mvc/hello`、`GET /mvc/echo?name=...`）
-- 启动类：`com.mvc.demo.MvcApplication` — IoC 扫描 → `DispatcherServlet` → MiniTomcat `/*`
-- MiniMVC 为 Demo 增加了 **MiniTomcat** 依赖（以后可同样方式挂 NIO）
+- `@Controller` / `@RestController` / `@RequestMapping` / `@RequestParam` / `@PathVariable` / `@ResponseBody`
+- `DispatcherServlet` → 映射 → 拦截器 → 适配器 → JSON 或纯文本
+- Demo：`com.mvc.demo`
 
-### 运行
+**说明：** Controller 还需 `@MyComponent`（进 IoC）。
+
+## 运行（BIO）
 
 ```bash
 mvn -pl MiniMVC -am install -DskipTests
 mvn -f MiniMVC/pom.xml exec:java
 ```
 
-然后：
+## 运行（NIO）
+
+```bash
+mvn -pl MiniMVC -am install -DskipTests
+mvn -f MiniMVC/pom.xml exec:java -Dexec.mainClass=com.mvc.demo.MvcNioApplication
+```
+
+## 试一下
 
 ```bash
 curl http://localhost:8080/mvc/hello
 curl "http://localhost:8080/mvc/echo?name=MiniSpring"
-```
-
-**说明：** `@Controller` 类同时需要是 IoC Bean（例如再加 `@MyComponent`）。
-
-## 构建
-
-在父工程 `mini-spring` 下（会先编译 api 与 IoC）：
-
-```bash
-mvn -pl MiniMVC -am compile
+curl "http://localhost:8080/mvc/add?a=1&b=2"
+curl http://localhost:8080/api/ping
+curl "http://localhost:8080/api/user?id=7"
+curl http://localhost:8080/api/users/7
 ```
 
 ## License

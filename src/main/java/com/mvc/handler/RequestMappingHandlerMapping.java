@@ -5,6 +5,7 @@ import com.miniioccontainer.context.MiniApplicationContext;
 import com.mvc.annotation.Controller;
 import com.mvc.annotation.RequestMapping;
 import com.mvc.annotation.RequestMethod;
+import com.mvc.annotation.RestController;
 import com.web.HttpRequest;
 
 import java.lang.reflect.Method;
@@ -14,34 +15,37 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Scans IoC beans for {@link Controller} + {@link RequestMapping} and builds an exact-path table.
- * <p>
- * Path variables and pattern matching are deferred.
+ * Scans IoC {@link Controller} / {@link RestController} beans and matches request paths
+ * (exact or {@code {var}} templates).
  */
 public class RequestMappingHandlerMapping implements HandlerMapping {
 
-    /** path → handlers (may differ by HTTP method) */
-    private final Map<String, List<HandlerMethod>> registry = new LinkedHashMap<>();
+    private final List<MappingRegistration> registrations = new ArrayList<>();
 
     public void init(MiniApplicationContext applicationContext) {
-        registry.clear();
+        registrations.clear();
         Map<String, Object> beans = applicationContext.getBeansOfType(Object.class);
         for (Object bean : beans.values()) {
             Object target = MiniAopInterceptor.unwrap(bean);
             Class<?> clazz = target.getClass();
-            if (!clazz.isAnnotationPresent(Controller.class)) {
+            if (!isControllerType(clazz)) {
                 continue;
             }
             registerController(target, clazz);
         }
-        System.out.println("[MiniMVC] HandlerMapping registered " + totalMappings() + " handler(s)");
-        for (List<HandlerMethod> handlers : registry.values()) {
-            for (HandlerMethod handler : handlers) {
-                System.out.println("  -> " + handler.getDescription());
-            }
+        System.out.println("[MiniMVC] HandlerMapping registered " + registrations.size() + " handler(s)");
+        for (MappingRegistration registration : registrations) {
+            System.out.println("  -> " + registration.handlerMethod().getDescription());
         }
+    }
+
+    private static boolean isControllerType(Class<?> clazz) {
+        return clazz.isAnnotationPresent(Controller.class)
+                || clazz.isAnnotationPresent(RestController.class);
     }
 
     private void registerController(Object bean, Class<?> clazz) {
@@ -61,15 +65,15 @@ public class RequestMappingHandlerMapping implements HandlerMapping {
     }
 
     private void register(HandlerMethod handlerMethod) {
-        List<HandlerMethod> existing = registry.computeIfAbsent(handlerMethod.getPath(), k -> new ArrayList<>());
-        for (HandlerMethod other : existing) {
-            if (overlaps(other, handlerMethod)) {
+        for (MappingRegistration existing : registrations) {
+            if (existing.pathPattern().equals(handlerMethod.getPath())
+                    && overlaps(existing.handlerMethod(), handlerMethod)) {
                 throw new IllegalStateException(
                         "Ambiguous mapping: " + handlerMethod.getDescription()
-                                + " conflicts with " + other.getDescription());
+                                + " conflicts with " + existing.handlerMethod().getDescription());
             }
         }
-        existing.add(handlerMethod);
+        registrations.add(MappingRegistration.compile(handlerMethod));
     }
 
     private static boolean overlaps(HandlerMethod a, HandlerMethod b) {
@@ -126,29 +130,75 @@ public class RequestMappingHandlerMapping implements HandlerMapping {
     @Override
     public HandlerMethod getHandler(HttpRequest request) {
         String path = normalize(request.getPath());
-        List<HandlerMethod> handlers = registry.get(path);
-        if (handlers == null || handlers.isEmpty()) {
-            return null;
-        }
         String httpMethod = request.getMethod();
-        for (HandlerMethod handler : handlers) {
-            if (handler.supportsHttpMethod(httpMethod)) {
-                return handler;
+        for (MappingRegistration registration : registrations) {
+            Map<String, String> variables = registration.match(path);
+            if (variables == null) {
+                continue;
+            }
+            HandlerMethod candidate = registration.handlerMethod();
+            if (candidate.supportsHttpMethod(httpMethod)) {
+                return candidate.withUriVariables(variables);
             }
         }
         return null;
     }
 
     public int totalMappings() {
-        int total = 0;
-        for (List<HandlerMethod> handlers : registry.values()) {
-            total += handlers.size();
-        }
-        return total;
+        return registrations.size();
     }
 
-    /** Exposed for tests / debugging. */
-    public Map<String, List<HandlerMethod>> getRegistry() {
-        return java.util.Collections.unmodifiableMap(registry);
+    private record MappingRegistration(
+            HandlerMethod handlerMethod,
+            String pathPattern,
+            Pattern regex,
+            List<String> variableNames
+    ) {
+        static MappingRegistration compile(HandlerMethod handlerMethod) {
+            String pattern = handlerMethod.getPath();
+            List<String> names = new ArrayList<>();
+            StringBuilder regex = new StringBuilder("^");
+            int i = 0;
+            while (i < pattern.length()) {
+                char c = pattern.charAt(i);
+                if (c == '{') {
+                    int end = pattern.indexOf('}', i);
+                    if (end < 0) {
+                        throw new IllegalStateException("Unclosed path variable in " + pattern);
+                    }
+                    names.add(pattern.substring(i + 1, end));
+                    regex.append("([^/]+)");
+                    i = end + 1;
+                } else {
+                    if (".[]{}()*+-?^$|\\".indexOf(c) >= 0) {
+                        regex.append('\\');
+                    }
+                    regex.append(c);
+                    i++;
+                }
+            }
+            regex.append('$');
+            return new MappingRegistration(
+                    handlerMethod,
+                    pattern,
+                    Pattern.compile(regex.toString()),
+                    List.copyOf(names));
+        }
+
+        /** @return uri variables map (possibly empty), or null if no match */
+        Map<String, String> match(String path) {
+            Matcher matcher = regex.matcher(path);
+            if (!matcher.matches()) {
+                return null;
+            }
+            if (variableNames.isEmpty()) {
+                return Map.of();
+            }
+            Map<String, String> variables = new LinkedHashMap<>();
+            for (int i = 0; i < variableNames.size(); i++) {
+                variables.put(variableNames.get(i), matcher.group(i + 1));
+            }
+            return variables;
+        }
     }
 }

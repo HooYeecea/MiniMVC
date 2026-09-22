@@ -7,48 +7,54 @@ A minimal SpringMVC-style layer on top of:
 
 Chinese version: [README(CN).md](README(CN).md)
 
-MiniMVC does **not** depend on a specific Tomcat. Wire `DispatcherServlet` into
-[MiniTomcat](https://github.com/HooYeecea/MiniTomcat) or
-[MiniTomcatNIO](https://github.com/HooYeecea/MiniTomcatNIO) at startup.
+MiniMVC does **not** hard-depend on one Tomcat. Demo bootstraps wire `DispatcherServlet` into
+[MiniTomcat](https://github.com/HooYeecea/MiniTomcat) (BIO) or
+[MiniTomcatNIO](https://github.com/HooYeecea/MiniTomcatNIO).
 
-## Roadmap (step by step)
+## Roadmap
 
 | Step | Goal | Status |
 |------|------|--------|
 | 1 | Annotations + `DispatcherServlet` skeleton | done |
-| 2 | `HandlerMapping` — discover `@Controller` beans and build route table | done |
-| 3 | Invoke handler methods (reflect + write response) | done |
-| **4** | Demo app + plug into MiniTomcat | **done** |
-| later | `@RequestParam`, return-value handlers, NIO bootstrap, etc. | pending |
+| 2 | `HandlerMapping` | done |
+| 3 | `HandlerAdapter` invoke | done |
+| 4 | Demo on MiniTomcat | done |
+| 5 | `@RequestParam` | done |
+| 6 | JSON (`@ResponseBody` / `@RestController`) | done |
+| 7 | Demo on MiniTomcatNIO | done |
+| 8 | `@PathVariable` + `HandlerInterceptor` | done |
 
-## Step 4 — what landed
+## Features
 
-- Demo: `com.mvc.demo.HelloController` (`GET /mvc/hello`, `GET /mvc/echo?name=...`)
-- Bootstrap: `com.mvc.demo.MvcApplication` — IoC scan → `DispatcherServlet` → MiniTomcat `/*`
-- MiniMVC now depends on **MiniTomcat** for the demo runner only (swap to NIO later the same way)
+- `@Controller` / `@RestController` / `@RequestMapping` / `@RequestParam` / `@PathVariable` / `@ResponseBody`
+- `DispatcherServlet` → mapping → interceptors → adapter → JSON or plain text
+- Demo controllers under `com.mvc.demo`
 
-### Run
+**Note:** controller classes also need `@MyComponent` (IoC).
+
+## Run (BIO)
 
 ```bash
 mvn -pl MiniMVC -am install -DskipTests
 mvn -f MiniMVC/pom.xml exec:java
 ```
 
-Then:
+## Run (NIO)
+
+```bash
+mvn -pl MiniMVC -am install -DskipTests
+mvn -f MiniMVC/pom.xml exec:java -Dexec.mainClass=com.mvc.demo.MvcNioApplication
+```
+
+## Try
 
 ```bash
 curl http://localhost:8080/mvc/hello
 curl "http://localhost:8080/mvc/echo?name=MiniSpring"
-```
-
-**Note:** `@Controller` classes must also be IoC beans (e.g. `@MyComponent`).
-
-## Build
-
-From the parent `mini-spring` reactor (installs `mini-servlet-api` and IoC first):
-
-```bash
-mvn -pl MiniMVC -am compile
+curl "http://localhost:8080/mvc/add?a=1&b=2"
+curl http://localhost:8080/api/ping
+curl "http://localhost:8080/api/user?id=7"
+curl http://localhost:8080/api/users/7
 ```
 
 ## License
