@@ -6,7 +6,7 @@ import com.web.HttpRequest;
 import com.web.HttpResponse;
 
 /**
- * Demo interceptor: logs each MiniMVC request.
+ * Demo interceptor: logs pre / post / afterCompletion.
  */
 public class LoggingInterceptor implements HandlerInterceptor {
 
@@ -20,5 +20,18 @@ public class LoggingInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpRequest request, HttpResponse response, HandlerMethod handler) {
         System.out.println("[Interceptor] post " + request.getPath() + " status=" + response.getStatus());
+    }
+
+    @Override
+    public void afterCompletion(HttpRequest request,
+                                HttpResponse response,
+                                HandlerMethod handler,
+                                Exception ex) {
+        if (ex == null) {
+            System.out.println("[Interceptor] after " + request.getPath() + " ok");
+        } else {
+            System.out.println("[Interceptor] after " + request.getPath()
+                    + " error=" + ex.getClass().getSimpleName());
+        }
     }
 }

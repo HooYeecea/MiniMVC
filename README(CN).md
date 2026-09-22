@@ -7,30 +7,28 @@
 
 英文版：[README.md](README.md)
 
-MiniMVC **不绑死**某一个 Tomcat。Demo 可把 `DispatcherServlet` 挂到
-[MiniTomcat](https://github.com/HooYeecea/MiniTomcat)（BIO）或
-[MiniTomcatNIO](https://github.com/HooYeecea/MiniTomcatNIO)。
+## 处理管道（更接近 Spring MVC）
 
-## 路线图
+```text
+DispatcherServlet
+  → HandlerMapping
+  → 拦截器（preHandle / postHandle / afterCompletion，可配路径）
+  → HandlerAdapter
+       → 参数解析器链
+       → 调用 Controller
+       → 返回值处理器链
+```
 
-| 步骤 | 目标 | 状态 |
-|------|------|------|
-| 1 | 注解 + `DispatcherServlet` 骨架 | 已完成 |
-| 2 | `HandlerMapping` | 已完成 |
-| 3 | `HandlerAdapter` 调用 | 已完成 |
-| 4 | Demo 挂 MiniTomcat | 已完成 |
-| 5 | `@RequestParam` | 已完成 |
-| 6 | JSON（`@ResponseBody` / `@RestController`） | 已完成 |
-| 7 | Demo 挂 MiniTomcatNIO | 已完成 |
-| 8 | `@PathVariable` + `HandlerInterceptor` | 已完成 |
+### 参数解析器
+`HttpRequest` / `HttpResponse` / `@RequestParam` / `@PathVariable`  
+（可通过 `RequestMappingHandlerAdapter#addArgumentResolver` 扩展）
 
-## 能力
+### 返回值处理器
+`@ResponseBody` JSON → `String` 纯文本 → 其它 `toString()`  
+（可通过 `addReturnValueHandler` 扩展）
 
-- `@Controller` / `@RestController` / `@RequestMapping` / `@RequestParam` / `@PathVariable` / `@ResponseBody`
-- `DispatcherServlet` → 映射 → 拦截器 → 适配器 → JSON 或纯文本
-- Demo：`com.mvc.demo`
-
-**说明：** Controller 还需 `@MyComponent`（进 IoC）。
+### 拦截器
+`HandlerInterceptor` + `MappedInterceptor`（`/**`、`/api/**`、精确路径）
 
 ## 运行（BIO）
 
@@ -56,6 +54,8 @@ curl http://localhost:8080/api/ping
 curl "http://localhost:8080/api/user?id=7"
 curl http://localhost:8080/api/users/7
 ```
+
+Controller 需同时有 `@MyComponent` 与 `@Controller` / `@RestController`。
 
 ## License
 

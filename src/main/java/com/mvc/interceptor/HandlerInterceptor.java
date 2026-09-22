@@ -5,7 +5,7 @@ import com.web.HttpRequest;
 import com.web.HttpResponse;
 
 /**
- * Spring-style handler interceptor (pre / post only for now).
+ * Spring-style handler interceptor: preHandle → postHandle → afterCompletion.
  */
 public interface HandlerInterceptor {
 
@@ -17,5 +17,12 @@ public interface HandlerInterceptor {
 
     default void postHandle(HttpRequest request, HttpResponse response, HandlerMethod handler)
             throws Exception {
+    }
+
+    /** Always called after the request finishes (success or error), for interceptors that ran preHandle. */
+    default void afterCompletion(HttpRequest request,
+                                 HttpResponse response,
+                                 HandlerMethod handler,
+                                 Exception ex) throws Exception {
     }
 }

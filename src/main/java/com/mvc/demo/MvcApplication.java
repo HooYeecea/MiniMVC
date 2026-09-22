@@ -3,7 +3,10 @@ package com.mvc.demo;
 import com.miniioccontainer.context.MiniApplicationContext;
 import com.minitomcat.HandleRequest;
 import com.minitomcat.HttpServer;
+import com.mvc.handler.HandlerMethod;
 import com.mvc.servlet.DispatcherServlet;
+import com.web.HttpRequest;
+import com.web.HttpResponse;
 
 /**
  * Boots MiniIOC + MiniMVC {@link DispatcherServlet} on MiniTomcat (BIO).
@@ -16,7 +19,15 @@ public class MvcApplication {
     public static void main(String[] args) throws Exception {
         MiniApplicationContext context = new MiniApplicationContext("com.mvc.demo");
         DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
-        dispatcherServlet.addInterceptor(new LoggingInterceptor());
+        dispatcherServlet.addInterceptor(new LoggingInterceptor(), "/**");
+        // API-only interceptor path demo
+        dispatcherServlet.addInterceptor(new LoggingInterceptor() {
+            @Override
+            public boolean preHandle(HttpRequest request, HttpResponse response, HandlerMethod handler) {
+                System.out.println("[Interceptor:/api] " + request.getPath());
+                return true;
+            }
+        }, "/api/**");
         dispatcherServlet.init();
 
         HandleRequest.resetMappings();

@@ -7,30 +7,28 @@ A minimal SpringMVC-style layer on top of:
 
 Chinese version: [README(CN).md](README(CN).md)
 
-MiniMVC does **not** hard-depend on one Tomcat. Demo bootstraps wire `DispatcherServlet` into
-[MiniTomcat](https://github.com/HooYeecea/MiniTomcat) (BIO) or
-[MiniTomcatNIO](https://github.com/HooYeecea/MiniTomcatNIO).
+## Pipeline (closer to Spring MVC)
 
-## Roadmap
+```text
+DispatcherServlet
+  → HandlerMapping
+  → Interceptors (preHandle / postHandle / afterCompletion, path patterns)
+  → HandlerAdapter
+       → ArgumentResolver chain
+       → invoke controller
+       → ReturnValueHandler chain
+```
 
-| Step | Goal | Status |
-|------|------|--------|
-| 1 | Annotations + `DispatcherServlet` skeleton | done |
-| 2 | `HandlerMapping` | done |
-| 3 | `HandlerAdapter` invoke | done |
-| 4 | Demo on MiniTomcat | done |
-| 5 | `@RequestParam` | done |
-| 6 | JSON (`@ResponseBody` / `@RestController`) | done |
-| 7 | Demo on MiniTomcatNIO | done |
-| 8 | `@PathVariable` + `HandlerInterceptor` | done |
+### Argument resolvers
+`HttpRequest` / `HttpResponse` / `@RequestParam` / `@PathVariable`  
+(add more via `RequestMappingHandlerAdapter#addArgumentResolver`)
 
-## Features
+### Return value handlers
+`@ResponseBody` JSON → `String` plain text → object `toString()` fallback  
+(add more via `addReturnValueHandler`)
 
-- `@Controller` / `@RestController` / `@RequestMapping` / `@RequestParam` / `@PathVariable` / `@ResponseBody`
-- `DispatcherServlet` → mapping → interceptors → adapter → JSON or plain text
-- Demo controllers under `com.mvc.demo`
-
-**Note:** controller classes also need `@MyComponent` (IoC).
+### Interceptors
+`HandlerInterceptor` + `MappedInterceptor` (`/**`, `/api/**`, exact)
 
 ## Run (BIO)
 
@@ -56,6 +54,8 @@ curl http://localhost:8080/api/ping
 curl "http://localhost:8080/api/user?id=7"
 curl http://localhost:8080/api/users/7
 ```
+
+Controllers need `@MyComponent` as well as `@Controller` / `@RestController`.
 
 ## License
 
