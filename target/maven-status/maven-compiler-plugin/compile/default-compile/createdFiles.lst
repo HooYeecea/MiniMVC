@@ -1,4 +1,7 @@
 com\minispring\mvc\annotation\Controller.class
 com\minispring\mvc\annotation\RequestMapping.class
 com\minispring\mvc\servlet\DispatcherServlet.class
+com\minispring\mvc\handler\HandlerMethod.class
+com\minispring\mvc\handler\HandlerMapping.class
+com\minispring\mvc\handler\RequestMappingHandlerMapping.class
 com\minispring\mvc\annotation\RequestMethod.class

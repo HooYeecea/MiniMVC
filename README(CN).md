@@ -15,25 +15,23 @@ MiniMVC **不依赖**具体某个 Tomcat。启动时把 `DispatcherServlet` 挂�
 
 | 步骤 | 目标 | 状态 |
 |------|------|------|
-| **1** | 注解 + `DispatcherServlet` 骨架 | **已完成** |
-| 2 | `HandlerMapping` — 发现 `@Controller` 并建路由表 | 待做 |
+| 1 | 注解 + `DispatcherServlet` 骨架 | 已完成 |
+| **2** | `HandlerMapping` — 发现 `@Controller` 并建路由表 | **已完成** |
 | 3 | 反射调用处理方法并写回响应 | 待做 |
 | 4 | Demo + 接到某个 Tomcat 实现 | 待做 |
 | 后续 | `@RequestParam`、返回值处理等 | 待做 |
 
-## Step 1 — 本次交付
+## Step 2 — 本次交付
 
-注解（`com.minispring.mvc.annotation`）：
+- `HandlerMethod` — Bean + `Method` + 路径 + HTTP 方法
+- `HandlerMapping` / `RequestMappingHandlerMapping`
+  - 扫描 IoC 中全部 Bean，解开 AOP 代理
+  - 注册带 `@Controller` 且方法上有 `@RequestMapping` 的类型
+  - 拼接类级 + 方法级路径（目前仅精确匹配）
+- `DispatcherServlet.init()` 建表；`service()` 查找并输出匹配结果（或 404）。
+  **尚未真正调用** Controller 方法。
 
-- `@Controller`
-- `@RequestMapping` / `RequestMethod`
-
-前端控制器：
-
-- `com.minispring.mvc.servlet.DispatcherServlet` — 实现 `com.minispring.web.Servlet`，
-  持有 `MiniApplicationContext`，目前返回纯文本「骨架已启动」。
-
-**说明：** `@Controller` 类同时需要是 IoC Bean（例如再加 `@MyComponent`），Step 2 才能扫到。
+**说明：** `@Controller` 类同时需要是 IoC Bean（例如再加 `@MyComponent`）。
 
 ## 构建
 

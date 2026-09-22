@@ -1,6 +1,9 @@
 package com.minispring.mvc.servlet;
 
 import com.miniioccontainer.context.MiniApplicationContext;
+import com.minispring.mvc.handler.HandlerMapping;
+import com.minispring.mvc.handler.HandlerMethod;
+import com.minispring.mvc.handler.RequestMappingHandlerMapping;
 import com.minispring.web.HttpRequest;
 import com.minispring.web.HttpResponse;
 import com.minispring.web.Servlet;
@@ -8,12 +11,13 @@ import com.minispring.web.Servlet;
 /**
  * Front controller for MiniMVC (Spring {@code DispatcherServlet} analogue).
  * <p>
- * <b>Step 1:</b> skeleton only — holds the IoC context and proves the servlet
- * is reachable. Handler mapping / invocation come in later steps.
+ * <b>Step 2:</b> builds {@link RequestMappingHandlerMapping} on init and looks up
+ * handlers. Invocation is still deferred to the next step.
  */
 public class DispatcherServlet implements Servlet {
 
     private final MiniApplicationContext applicationContext;
+    private final RequestMappingHandlerMapping handlerMapping = new RequestMappingHandlerMapping();
 
     public DispatcherServlet(MiniApplicationContext applicationContext) {
         if (applicationContext == null) {
@@ -26,20 +30,36 @@ public class DispatcherServlet implements Servlet {
         return applicationContext;
     }
 
+    public HandlerMapping getHandlerMapping() {
+        return handlerMapping;
+    }
+
     @Override
     public void init() {
-        System.out.println("[MiniMVC] DispatcherServlet init (step 1: skeleton)");
+        handlerMapping.init(applicationContext);
+        System.out.println("[MiniMVC] DispatcherServlet init (step 2: HandlerMapping)");
     }
 
     @Override
     public void service(HttpRequest request, HttpResponse response) {
-        response.setStatus(200, "OK");
+        HandlerMethod handler = handlerMapping.getHandler(request);
         response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+        if (handler == null) {
+            response.setStatus(404, "Not Found");
+            response.setBody(
+                    "404 Not Found\n"
+                            + "method=" + request.getMethod() + "\n"
+                            + "path=" + request.getPath() + "\n"
+                            + "(step 2: mapping only — no handler matched)\n");
+            return;
+        }
+        response.setStatus(200, "OK");
         response.setBody(
-                "MiniMVC DispatcherServlet is up (step 1: skeleton).\n"
+                "Handler matched (step 2: mapping only, not invoked yet).\n"
+                        + "handler=" + handler.getDescription() + "\n"
                         + "method=" + request.getMethod() + "\n"
                         + "path=" + request.getPath() + "\n"
-                        + "Next: HandlerMapping + invoke @Controller methods.\n");
+                        + "Next: reflectively invoke the controller method.\n");
     }
 
     @Override

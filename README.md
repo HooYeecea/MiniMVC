@@ -15,25 +15,23 @@ MiniMVC does **not** depend on a specific Tomcat. Wire `DispatcherServlet` into
 
 | Step | Goal | Status |
 |------|------|--------|
-| **1** | Annotations + `DispatcherServlet` skeleton | **done** |
-| 2 | `HandlerMapping` — discover `@Controller` beans and build route table | pending |
+| 1 | Annotations + `DispatcherServlet` skeleton | done |
+| **2** | `HandlerMapping` — discover `@Controller` beans and build route table | **done** |
 | 3 | Invoke handler methods (reflect + write response) | pending |
 | 4 | Demo app + plug into a Tomcat impl | pending |
 | later | `@RequestParam`, return-value handlers, etc. | pending |
 
-## Step 1 — what landed
+## Step 2 — what landed
 
-Annotations in `com.minispring.mvc.annotation`:
+- `HandlerMethod` — bean + `Method` + path + HTTP methods
+- `HandlerMapping` / `RequestMappingHandlerMapping`
+  - Scans IoC beans (`getBeansOfType(Object.class)`), unwraps AOP proxies
+  - Registers `@Controller` types that also have `@RequestMapping` on methods
+  - Combines class-level + method-level paths (exact match only)
+- `DispatcherServlet.init()` builds the table; `service()` looks up and reports
+  the match (or 404). **Does not invoke** the controller yet.
 
-- `@Controller`
-- `@RequestMapping` / `RequestMethod`
-
-Front controller:
-
-- `com.minispring.mvc.servlet.DispatcherServlet` — implements `com.minispring.web.Servlet`,
-  holds `MiniApplicationContext`, responds with a plain-text “skeleton is up” body.
-
-**Note:** `@Controller` classes must also be IoC beans (e.g. `@MyComponent`) so step 2 can find them.
+**Note:** `@Controller` classes must also be IoC beans (e.g. `@MyComponent`).
 
 ## Build
 
