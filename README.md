@@ -17,18 +17,29 @@ MiniMVC does **not** depend on a specific Tomcat. Wire `DispatcherServlet` into
 |------|------|--------|
 | 1 | Annotations + `DispatcherServlet` skeleton | done |
 | 2 | `HandlerMapping` — discover `@Controller` beans and build route table | done |
-| **3** | Invoke handler methods (reflect + write response) | **done** |
-| 4 | Demo app + plug into a Tomcat impl | pending |
-| later | `@RequestParam`, return-value handlers, etc. | pending |
+| 3 | Invoke handler methods (reflect + write response) | done |
+| **4** | Demo app + plug into MiniTomcat | **done** |
+| later | `@RequestParam`, return-value handlers, NIO bootstrap, etc. | pending |
 
-## Step 3 — what landed
+## Step 4 — what landed
 
-- `HandlerAdapter` / `RequestMappingHandlerAdapter`
-  - Reflectively invoke the matched `HandlerMethod`
-  - Inject `HttpRequest` / `HttpResponse` method parameters
-  - `String` (or other) return values → plain-text response body; `void` if the
-    method already wrote via `HttpResponse`
-- `DispatcherServlet.service()` now: map → adapt → invoke (404 / 500 on failure)
+- Demo: `com.mvc.demo.HelloController` (`GET /mvc/hello`, `GET /mvc/echo?name=...`)
+- Bootstrap: `com.mvc.demo.MvcApplication` — IoC scan → `DispatcherServlet` → MiniTomcat `/*`
+- MiniMVC now depends on **MiniTomcat** for the demo runner only (swap to NIO later the same way)
+
+### Run
+
+```bash
+mvn -pl MiniMVC -am install -DskipTests
+mvn -f MiniMVC/pom.xml exec:java
+```
+
+Then:
+
+```bash
+curl http://localhost:8080/mvc/hello
+curl "http://localhost:8080/mvc/echo?name=MiniSpring"
+```
 
 **Note:** `@Controller` classes must also be IoC beans (e.g. `@MyComponent`).
 

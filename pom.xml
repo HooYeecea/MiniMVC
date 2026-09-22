@@ -26,5 +26,25 @@
             <artifactId>MiniIOCContainer</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Demo bootstrap only: wire DispatcherServlet onto BIO MiniTomcat -->
+        <dependency>
+            <groupId>com.minitomcat</groupId>
+            <artifactId>MiniTomcat</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>com.mvc.demo.MvcApplication</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
