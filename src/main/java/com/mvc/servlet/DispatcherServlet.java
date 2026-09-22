@@ -1,6 +1,8 @@
 package com.mvc.servlet;
 
 import com.miniioccontainer.context.MiniApplicationContext;
+import com.mvc.exception.ExceptionHandlerExceptionResolver;
+import com.mvc.exception.HandlerExceptionResolver;
 import com.mvc.handler.HandlerAdapter;
 import com.mvc.handler.HandlerMapping;
 import com.mvc.handler.HandlerMethod;
@@ -23,13 +25,17 @@ public class DispatcherServlet implements Servlet {
     private final MiniApplicationContext applicationContext;
     private final RequestMappingHandlerMapping handlerMapping = new RequestMappingHandlerMapping();
     private final RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
+    private final ExceptionHandlerExceptionResolver exceptionResolver =
+            new ExceptionHandlerExceptionResolver(handlerAdapter.getReturnValueHandlers());
     private final List<MappedInterceptor> interceptors = new ArrayList<>();
+    private final List<HandlerExceptionResolver> exceptionResolvers = new ArrayList<>();
 
     public DispatcherServlet(MiniApplicationContext applicationContext) {
         if (applicationContext == null) {
             throw new IllegalArgumentException("applicationContext must not be null");
         }
         this.applicationContext = applicationContext;
+        this.exceptionResolvers.add(exceptionResolver);
     }
 
     public MiniApplicationContext getApplicationContext() {
@@ -48,19 +54,22 @@ public class DispatcherServlet implements Servlet {
         return handlerAdapter;
     }
 
-    /** Register an interceptor for all paths. */
     public void addInterceptor(HandlerInterceptor interceptor) {
         interceptors.add(new MappedInterceptor(interceptor, "/**"));
     }
 
-    /** Register an interceptor for the given include patterns. */
     public void addInterceptor(HandlerInterceptor interceptor, String... pathPatterns) {
         interceptors.add(new MappedInterceptor(interceptor, pathPatterns));
+    }
+
+    public void addExceptionResolver(HandlerExceptionResolver resolver) {
+        exceptionResolvers.add(0, resolver);
     }
 
     @Override
     public void init() {
         handlerMapping.init(applicationContext);
+        exceptionResolver.init(applicationContext);
         System.out.println("[MiniMVC] DispatcherServlet init");
     }
 
@@ -100,12 +109,21 @@ public class DispatcherServlet implements Servlet {
             }
         } catch (Exception ex) {
             dispatchException = ex;
-            response.setStatus(500, "Internal Server Error");
-            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
-            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
-            response.setBody("500 Internal Server Error\n" + message + "\n");
-            System.err.println("[MiniMVC] handler failed: " + handler.getDescription());
-            ex.printStackTrace(System.err);
+            boolean handled = false;
+            for (HandlerExceptionResolver resolver : exceptionResolvers) {
+                if (resolver.resolveException(request, response, handler, ex)) {
+                    handled = true;
+                    break;
+                }
+            }
+            if (!handled) {
+                response.setStatus(500, "Internal Server Error");
+                response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+                String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+                response.setBody("500 Internal Server Error\n" + message + "\n");
+                System.err.println("[MiniMVC] handler failed: " + handler.getDescription());
+                ex.printStackTrace(System.err);
+            }
         } finally {
             triggerAfterCompletion(chain, preHandleIndex, request, response, handler, dispatchException);
         }

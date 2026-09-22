@@ -2,10 +2,12 @@ package com.mvc.demo;
 
 import com.miniioccontainer.annotation.MyComponent;
 import com.mvc.annotation.PathVariable;
+import com.mvc.annotation.RequestBody;
 import com.mvc.annotation.RequestMapping;
 import com.mvc.annotation.RequestMethod;
 import com.mvc.annotation.RequestParam;
 import com.mvc.annotation.RestController;
+import com.mvc.annotation.Valid;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,6 +42,15 @@ public class ApiController {
         body.put("id", id);
         body.put("name", "user-" + id);
         body.put("source", "path");
+        return body;
+    }
+
+    @RequestMapping(value = "/users", method = RequestMethod.POST)
+    public Map<String, Object> createUser(@Valid @RequestBody CreateUserRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("created", true);
+        body.put("name", request.getName());
+        body.put("age", request.getAge());
         return body;
     }
 }

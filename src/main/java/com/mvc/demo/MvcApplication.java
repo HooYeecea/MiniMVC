@@ -40,6 +40,7 @@ public class MvcApplication {
         System.out.println("  GET http://localhost:8080/api/ping");
         System.out.println("  GET http://localhost:8080/api/user?id=7");
         System.out.println("  GET http://localhost:8080/api/users/7");
+        System.out.println("  POST http://localhost:8080/api/users  (JSON body)");
         HttpServer.main(args);
     }
 }

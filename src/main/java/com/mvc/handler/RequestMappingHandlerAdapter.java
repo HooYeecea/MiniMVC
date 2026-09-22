@@ -6,6 +6,7 @@ import com.mvc.handler.argument.HandlerMethodArgumentResolverComposite;
 import com.mvc.handler.argument.HttpRequestMethodArgumentResolver;
 import com.mvc.handler.argument.HttpResponseMethodArgumentResolver;
 import com.mvc.handler.argument.PathVariableMethodArgumentResolver;
+import com.mvc.handler.argument.RequestBodyMethodArgumentResolver;
 import com.mvc.handler.argument.RequestParamMethodArgumentResolver;
 import com.mvc.handler.returnvalue.HandlerMethodReturnValueHandler;
 import com.mvc.handler.returnvalue.HandlerMethodReturnValueHandlerComposite;
@@ -36,7 +37,8 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter {
                 .addResolver(new HttpRequestMethodArgumentResolver())
                 .addResolver(new HttpResponseMethodArgumentResolver())
                 .addResolver(new RequestParamMethodArgumentResolver())
-                .addResolver(new PathVariableMethodArgumentResolver());
+                .addResolver(new PathVariableMethodArgumentResolver())
+                .addResolver(new RequestBodyMethodArgumentResolver(objectMapper));
 
         returnValueHandlers
                 .addHandler(new ResponseBodyReturnValueHandler(objectMapper))
@@ -54,6 +56,10 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter {
 
     public void addReturnValueHandler(HandlerMethodReturnValueHandler handler) {
         returnValueHandlers.addHandler(handler);
+    }
+
+    public HandlerMethodReturnValueHandlerComposite getReturnValueHandlers() {
+        return returnValueHandlers;
     }
 
     public ObjectMapper getObjectMapper() {
